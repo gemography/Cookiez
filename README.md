@@ -1,18 +1,11 @@
 ## TODO
 - [ ] Setup App in Slack
-- [ ] Setup model and database
+- [x] Setup model and database
 - [ ] Setup slash command route
 - [ ] Record operations on recognition exchange
 - [ ] Send message with attachments
+- [ ] Handle change in Slack usernames
+- [ ] Add logger
 
 
 ## Notes
-- must create a .env file with the keys:
-```
-NODE_ENV=
-
-DB_HOST=
-DB_USER=
-DB_PASSWORD=
-DB_NAME=
-```
