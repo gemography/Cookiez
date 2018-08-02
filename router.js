@@ -9,6 +9,11 @@ module.exports = [
   {
     method: 'POST',
     url: '/send',
-    handler: mainController.sendGift,
+    handler: mainController.sendCookiez,
+  },
+  {
+    method: 'POST',
+    url: '/interact',
+    handler: mainController.react,
   }
 ];
