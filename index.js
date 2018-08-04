@@ -16,8 +16,10 @@ mongoose.connection.on('error', (err) => {
 
 import router from './router';
 import bootstrap from './bootstrap';
+import cron from './services/cron';
 
 bootstrap();
+cron.resetRemaining.start();
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
