@@ -1,10 +1,11 @@
 import mainController from './api/controllers/mainController';
+import userController from './api/controllers/userController';
 
 module.exports = [
   {
-    method: 'GET',
-    url: '',
-    handler: mainController.testMain,
+    method: 'POST',
+    url: '/cookiez',
+    handler: userController.getCookiezAmount,
   },
   {
     method: 'POST',
