@@ -2,7 +2,7 @@ import { WebClient } from '@slack/client';
 
 const web = new WebClient(process.env.SLACK_TOKEN);
 
-function sendCookiezMessage(to, message, attachedMsg) {
+function sendCookiezMessage(to, message, attachedMsg, id) {
   return web.chat.postMessage({
     channel: to,
     user: to,
@@ -10,7 +10,7 @@ function sendCookiezMessage(to, message, attachedMsg) {
     attachments: [
       {
         text: attachedMsg,
-        callback_id: 'cookiez_reaction',
+        callback_id: `cookiez_reaction-${id}`,
         attachment_type: 'default',
         actions: [
           {

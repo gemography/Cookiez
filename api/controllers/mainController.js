@@ -1,6 +1,7 @@
 import slack from '../../services/slack';
 import logger from '../../services/logger';
 import User from '../models/user';
+import Transaction from '../models/transaction';
 
 module.exports = {
   sendCookiez(req, res) {
@@ -24,11 +25,12 @@ module.exports = {
       .then(users => {
         if (users.length > 2) {
           logger.error(`find for users ${user_name} and ${targetUser} resulted in ${users.length} hits`);
-          return res.status(500).send('Something went wrong 5001');
+          return res.status(500).send('Something went wrong');
         }
 
         const from = users.find(x => x.name === user_name) || new User({ name: user_name });
         const to = users.find(x => x.name === targetUser) || new User({ name: targetUser });
+        const transaction = new Transaction({ from: from._id, to: to._id, amount });
         from.remaining -= amount;
         to.total += amount;
 
@@ -37,8 +39,8 @@ module.exports = {
         }
 
         return Promise
-          .all([from.save(), to.save()])
-          .then(() => slack.sendCookiezMessage(`@${targetUser}`, `*${targetUser}* gave you *${amount}* Cookiez`, message))
+          .all([from.save(), to.save(), transaction.save()])
+          .then(() => slack.sendCookiezMessage(`@${targetUser}`, `*${targetUser}* gave you *${amount}* Cookiez`, message, transaction._id))
           .then(() => res.send(`You gave ${from.name} ${amount} Cookiez to ${to.name}`));
       })
       .catch(err => {
@@ -63,6 +65,11 @@ module.exports = {
       logger.error(e);
       return res.status(400).send('something was wrong with the request');
     }
-    return res.send(slack.getReactionCallbackMessage(payload));
+    return Transaction.update(
+      payload.callback_id.split('-')[1],
+      { $set : { reaction: payload.actions[0].value } }
+      )
+      .then(() => res.send(slack.getReactionCallbackMessage(payload)))
+      .catch(logger.error);
   }
 };
