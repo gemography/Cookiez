@@ -3,8 +3,13 @@ import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
 
 const User = new Schema({
-  name: String,
-  userId: String,
+  name: {
+    type: String,
+  },
+  userId: {
+    type: String,
+    index: true,
+  },
   total: {
     type: Number,
     default: 0,
