@@ -38,6 +38,9 @@ module.exports = {
         from.name = user_name;
         to.name = targetUserName;
         const transaction = new Transaction({ from: from._id, to: to._id, amount });
+        if (amount < 0) {
+          return res.send('You can only share positivity with Cookiez');
+        }
         from.remaining -= amount;
         to.total += amount;
 
