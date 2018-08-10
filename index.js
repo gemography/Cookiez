@@ -20,7 +20,7 @@ app.use(morgan(morganFormat, {
   stream: process.stdout
 }));
 
-mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true });
+mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, autoIndex: false });
 mongoose.connection.on('error', (err) => {
   logger.error(err);
   logger.error('%s MongoDB connection error. Please make sure MongoDB is running.', chalk.red('✗'));
