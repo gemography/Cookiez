@@ -2,6 +2,7 @@ import slack from '../../services/slack';
 import logger from '../../services/logger';
 import User from '../models/user';
 import Transaction from '../models/transaction';
+import CookiezInput from '../lib/cookiezInput';
 
 module.exports = {
   sendCookiez(req, res) {
@@ -9,49 +10,41 @@ module.exports = {
     if (token !== process.env.SLACK_VERIFICATION_TOKEN) {
       return res.status(403).send('wrong token');
     }
-    const parsed = text.split(' ');
-    const target= parsed[0].substring(1).split('|');
-    const targetUser = target[0].substring(1);
-    const targetUserName = target[1];
-    if (target[0].substring(0, 2) !== '@U') {
-      return res.send('You must mention a Slack user');
-    }
-    const amount = isNaN(parsed[1]) ? 1 : +parsed[1];
-    const message = isNaN(parsed[1])
-      ? parsed.length > 1 ? parsed.slice(1).join(' ') : null
-      : parsed.length > 2 ? parsed.slice(2).join(' ') : null;
+    const input = new CookiezInput({ name: user_name, userId: user_id }, text);
+    logger.debug(JSON.stringify(input));
 
-    if (user_id === targetUser) {
-      return res.send('You can\'t give Cookiez to yourself. Be a champ and give it to a colleague that you appreciate');
+    if (input.ineligibility) {
+      return res.send(input.getIneligibilityMessage());
     }
 
     return User
-      .find({ userId: { $in: [user_id, targetUser] } })
+      .find({ userId: { $in: [user_id, input.to.userId] } })
       .then(users => {
         if (users.length > 2) {
-          logger.error(`find for users ${user_id} and ${targetUser} resulted in ${users.length} hits`);
+          logger.error(`find for users ${input.from} and ${input.to} resulted in ${users.length} hits`);
           return res.status(500).send('Something went wrong');
         }
 
-        const from = users.find(x => x.userId === user_id) || new User({ userId: user_id, name: user_name });
-        const to = users.find(x => x.userId === targetUser) || new User({ userId: targetUser, name: targetUserName });
+        const from = users.find(x => x.userId === user_id) || new User(input.from);
+        const to = users.find(x => x.userId === input.to.userId) || new User(input.to);
         from.name = user_name;
-        to.name = targetUserName;
-        const transaction = new Transaction({ from: from._id, to: to._id, amount });
-        if (amount < 0) {
-          return res.send('You can only share positivity with Cookiez');
-        }
-        from.remaining -= amount;
-        to.total += amount;
+        to.name = input.to.name;
+        const transaction = new Transaction({ from: from._id, to: to._id, amount: input.amount });
+        from.remaining -= input.amount;
+        to.total += input.amount;
 
         if (from.remaining < 0) {
-          return res.send(`You only have ${from.remaining + amount} left. You can't send more than that`);
+          return res.send(`You only have ${from.remaining + input.amount} left. You can't send more than that`);
         }
 
         return Promise
           .all([from.save(), to.save(), transaction.save()])
-          .then(() => slack.sendCookiezMessage(`@${to.name}`, `*${from.name}* gave you *${amount} Cookiez*`, message, transaction._id))
-          .then(() => res.send(`You gave ${to.name} *${amount} Cookiez*`));
+          .then(() => slack.sendCookiezMessage(
+            `@${to.name}`,
+            `*${from.name}* gave you *${input.amount} Cookiez* (You have now ${to.total})`,
+            input.message,
+            transaction._id))
+          .then(() => res.send(`You gave *${to.name} ${input.amount} Cookiez* (${from.remaining} left)`));
       })
       .catch(err => {
         logger.error(err);
