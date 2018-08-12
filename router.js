@@ -1,7 +1,13 @@
 import mainController from './api/controllers/mainController';
+import cookiezController from './api/controllers/cookiezController';
 import userController from './api/controllers/userController';
 
 module.exports = [
+  {
+    method: 'GET',
+    url: '/',
+    handler: mainController.welcome,
+  },
   {
     method: 'POST',
     url: '/cookiez',
@@ -10,11 +16,11 @@ module.exports = [
   {
     method: 'POST',
     url: '/send',
-    handler: mainController.sendCookiez,
+    handler: cookiezController.sendCookiez,
   },
   {
     method: 'POST',
     url: '/interact',
-    handler: mainController.react,
+    handler: cookiezController.react,
   }
 ];
