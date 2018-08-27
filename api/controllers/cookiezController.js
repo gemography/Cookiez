@@ -70,7 +70,7 @@ module.exports = {
     }
 
     return Transaction.update(
-      payload.callback_id.split('-')[1],
+      { _id: payload.callback_id.split('-')[1] },
       { $set : { reaction: payload.actions[0].value } }
     )
       .then(() => res.send(slack.getReactionCallbackMessage(payload)))
