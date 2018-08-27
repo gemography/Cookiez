@@ -53,10 +53,6 @@ module.exports = {
   },
 
   react(req, res) {
-    if (payload.token !== process.env.SLACK_VERIFICATION_TOKEN) {
-      return res.status(403).send('wrong token');
-    }
-
     let payload;
     try {
       payload = JSON.parse(req.body.payload);
@@ -68,6 +64,11 @@ module.exports = {
       logger.error(e);
       return res.status(400).send('something was wrong with the request');
     }
+
+    if (payload.token !== process.env.SLACK_VERIFICATION_TOKEN) {
+      return res.status(403).send('wrong token');
+    }
+
     return Transaction.update(
       payload.callback_id.split('-')[1],
       { $set : { reaction: payload.actions[0].value } }

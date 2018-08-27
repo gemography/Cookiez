@@ -26,9 +26,9 @@ function sendCookiezMessage(to, message, attachedMsg, id) {
             type: 'button'
           },
           {
-            name: 'msemen',
-            text: ':msemen:',
-            value: ':msemen:',
+            name: 'msemmen',
+            text: ':msemmen:',
+            value: ':msemmen:',
             type: 'button'
           }
         ]
