@@ -3,38 +3,41 @@ import { WebClient } from '@slack/client';
 const web = new WebClient(process.env.SLACK_TOKEN);
 
 function sendCookiezMessage(to, message, attachedMsg, id) {
-  return web.chat.postMessage({
-    channel: to,
-    user: to,
-    text: message,
-    attachments: [
-      {
-        text: attachedMsg,
-        callback_id: `cookiez_reaction-${id}`,
-        attachment_type: 'default',
-        actions: [
-          {
-            name: 'thumbsup',
-            text: ':thumbsup:',
-            value: ':thumbsup:',
-            type: 'button'
-          },
-          {
-            name: 'joy',
-            text: ':joy:',
-            value: ':joy:',
-            type: 'button'
-          },
-          {
-            name: 'msemmen',
-            text: ':msemmen:',
-            value: ':msemmen:',
-            type: 'button'
-          }
-        ]
-      }
-    ]
-  });
+  const attachment = {
+      text: attachedMsg,
+      callback_id: `cookiez_reaction-${id}`,
+      attachment_type: 'default',
+      actions: [
+        {
+          name: 'thumbsup',
+          text: ':thumbsup:',
+          value: ':thumbsup:',
+          type: 'button'
+        },
+        {
+          name: 'joy',
+          text: ':joy:',
+          value: ':joy:',
+          type: 'button'
+        },
+        {
+          name: 'msemmen',
+          text: ':msemmen:',
+          value: ':msemmen:',
+          type: 'button'
+        },
+      ]
+    };
+  return _sendMessage(to, message, [attachment]);
+}
+
+function sendReactionBackToSender({ to, reactionMsg, cookiezMsg, attachedMsg }) {
+  const attachment = {
+      pretext: cookiezMsg, // y gave cookiez to x
+      text: attachedMsg,
+      attachment_type: 'default',
+    };
+  return _sendMessage(to, reactionMsg, [attachment]);
 }
 
 function getReactionCallbackMessage(payload) {
@@ -51,7 +54,27 @@ function getReactionCallbackMessage(payload) {
   }
 }
 
+function _sendMessage(to, text, attachments) {
+  return web.chat.postMessage({
+    channel: to,
+    user: to,
+    text,
+    attachments,
+  });
+}
+
+function _updateMEssage(channel, to, text, ts, attachments) {
+  return web.chat.update({
+    channel,
+    user: to,
+    ts,
+    text,
+    attachments,
+  });
+}
+
 module.exports = {
   sendCookiezMessage,
-  getReactionCallbackMessage
+  getReactionCallbackMessage,
+  sendReactionBackToSender
 };
