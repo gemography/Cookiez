@@ -25,7 +25,7 @@ const User = new Schema({
 });
 
 User.statics.resetRemaining = function() {
-  return this.update({}, { $set: { remaining: 7 } });
+  return this.updateMany({}, { $set: { remaining: 7 } });
 };
 
 module.exports = mongoose.model('User', User);
