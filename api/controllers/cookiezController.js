@@ -69,11 +69,28 @@ module.exports = {
       return res.status(403).send('wrong token');
     }
 
-    return Transaction.update(
+    return Transaction.findByIdAndUpdate(
       { _id: payload.callback_id.split('-')[1] },
       { $set : { reaction: payload.actions[0].value } }
     )
-      .then(() => res.send(slack.getReactionCallbackMessage(payload)))
+      .populate({ path: 'from' })
+      .then((transaction) => {
+        const p = {
+          to: transaction.from.userId,
+          reactionMsg: `${payload.user.name} reacted with ${payload.actions[0].value}`,
+          cookiezMsg: `${transaction.from.name} gave ${transaction.amount} cookiez to ${payload.user.name}`,
+          attachedMsg: payload.original_message.attachments[0].text
+        };
+        slack.sendReactionBackToSender(p).catch(logger.error);
+        return res.send(slack.getReactionCallbackMessage(payload))
+      })
       .catch(logger.error);
   }
 };
+
+/*
+  TODO
+    - create a class for Slack update message input
+    - extract react function to a separate ReactionController
+    - update message instead of sending a new one back for the reaction
+ */
